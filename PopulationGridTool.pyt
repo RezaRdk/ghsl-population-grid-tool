@@ -220,8 +220,7 @@ class RasterToPopulationGrid(object):
         res_label = parameters[4].valueAsText
         if download_ghsl and epoch_val and crs_code and res_label:
             res_code = self.RESOLUTION_OPTIONS.get(crs_code, {}).get(res_label, "")
-            crs_short_name = self.CRS_OPTIONS.get(coord_system_param.value, (None, "CRS"))[1]
-            suggested = "PopGrid_{0}_{1}_{2}".format(epoch_val, res_code, crs_short_name)
+            suggested = "PopGrid_{0}_{1}".format(epoch_val, res_code)
         else:
             suggested = "PopulationGrid"
 
@@ -272,6 +271,14 @@ class RasterToPopulationGrid(object):
             messages.addMessage("Cached raster found, skipping download: {}".format(tif_path))
             return tif_path
 
+        # If a zip already exists but is corrupt/incomplete (e.g. from an
+        # interrupted previous run), discard it so it gets re-downloaded.
+        if os.path.exists(zip_path) and not zipfile.is_zipfile(zip_path):
+            messages.addWarningMessage(
+                "Cached zip appears corrupted/incomplete; re-downloading: {}".format(zip_path)
+            )
+            os.remove(zip_path)
+
         if not os.path.exists(zip_path):
             messages.addMessage("Downloading: {}".format(url))
             with requests.get(url, stream=True, timeout=300) as r:
@@ -284,8 +291,20 @@ class RasterToPopulationGrid(object):
             messages.addMessage("Cached zip found, skipping download.")
 
         messages.addMessage("Extracting archive...")
-        with zipfile.ZipFile(zip_path, "r") as z:
-            z.extractall(download_folder)
+        try:
+            with zipfile.ZipFile(zip_path, "r") as z:
+                z.extractall(download_folder)
+        except zipfile.BadZipFile:
+            # Corrupt even after the check above (e.g. download failed
+            # mid-stream this time) -- clean up and fail with a clear message
+            # instead of leaving a bad file for next time.
+            if os.path.exists(zip_path):
+                os.remove(zip_path)
+            raise RuntimeError(
+                "Downloaded file for epoch {} was not a valid zip (download may "
+                "have failed or been interrupted). The bad file was removed; "
+                "please run the tool again to retry the download.".format(epoch)
+            )
 
         if not os.path.exists(tif_path):
             for fn in os.listdir(download_folder):
