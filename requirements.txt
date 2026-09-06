@@ -1,0 +1,4 @@
+# These are already bundled with ArcGIS Pro's default conda environment
+# (arcgispro-py3), so no installation is normally needed. Listed here for
+# documentation purposes only.
+requests>=2.25

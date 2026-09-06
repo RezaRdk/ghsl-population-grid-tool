@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+
+# ArcGIS Pro project & lock files
+*.aprx.bak
+*.lock
+*.ddl
+*.mdb
+Default.gdb/
+*.gdb/
+*.sde
+
+# Downloaded / cached GHS-POP data (large files, shouldn't be committed)
+GHSL_cache/
+*.tif
+*.zip
+
+# OS junk
+.DS_Store
+Thumbs.db
