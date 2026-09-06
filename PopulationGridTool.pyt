@@ -220,8 +220,7 @@ class RasterToPopulationGrid(object):
         res_label = parameters[4].valueAsText
         if download_ghsl and epoch_val and crs_code and res_label:
             res_code = self.RESOLUTION_OPTIONS.get(crs_code, {}).get(res_label, "")
-            crs_short_name = self.CRS_OPTIONS.get(coord_system_param.value, (None, "CRS"))[1]
-            suggested = "PopGrid_{0}_{1}_{2}".format(epoch_val, res_code, crs_short_name)
+            suggested = "PopGrid_{0}_{1}".format(epoch_val, res_code)
         else:
             suggested = "PopulationGrid"
 
